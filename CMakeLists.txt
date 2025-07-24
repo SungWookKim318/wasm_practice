@@ -6,7 +6,13 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Emscripten 설정
-if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+message(STATUS "CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
+message(STATUS "EMSCRIPTEN: ${EMSCRIPTEN}")
+message(STATUS "CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
+
+# Emscripten 툴체인 파일이 설정되어 있는지 확인
+if(CMAKE_TOOLCHAIN_FILE AND CMAKE_TOOLCHAIN_FILE MATCHES "Emscripten")
+    message(STATUS "Emscripten detected via toolchain file, proceeding with build...")
     set(CMAKE_EXECUTABLE_SUFFIX ".js")
 
     # 소스 파일
@@ -22,5 +28,5 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/web/public"
     )
 else()
-    message(FATAL_ERROR "This project requires Emscripten to build")
+    message(FATAL_ERROR "This project requires Emscripten to build. Please use emcmake.")
 endif()
