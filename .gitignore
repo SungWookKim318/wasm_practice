@@ -305,3 +305,4 @@ dist
 *.xhtml
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,web,node,cmake,c++
+build
