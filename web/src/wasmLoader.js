@@ -29,7 +29,6 @@ export const loadWasm = async () => {
     const script = document.createElement('script');
     script.src = '/helper.js';
     script.type = 'text/javascript';
-    
     const loadPromise = new Promise((resolve, reject) => {
       script.onload = async () => {
         try {
@@ -54,27 +53,22 @@ export const loadWasm = async () => {
           reject(error);
         }
       };
-      
       script.onerror = (error) => {
         isLoading = false;
         reject(new Error('Failed to load helper.js script: ' + error.message));
       };
-      
       // 스크립트가 이미 로드되어 있는지 확인
       const existingScript = document.querySelector('script[src="/helper.js"]');
       if (existingScript) {
         document.head.removeChild(existingScript);
       }
-      
       document.head.appendChild(script);
     });
 
     return await loadPromise;
-    
   } catch (error) {
     isLoading = false;
     console.error('Failed to load WASM module:', error);
-    
     // 방법 2: fetch로 대체 시도
     try {
       console.log('Trying fallback method with fetch...');
@@ -82,13 +76,10 @@ export const loadWasm = async () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
       const scriptContent = await response.text();
-      
       // eval을 사용하여 스크립트 실행 (Firefox 호환성)
       const func = new Function(scriptContent + '; return createWasmModule;');
       const createWasmModule = func();
-      
       wasmModule = await createWasmModule({
         locateFile: (path) => {
           if (path.endsWith('.wasm')) {
@@ -97,10 +88,8 @@ export const loadWasm = async () => {
           return path;
         }
       });
-      
       console.log('WASM module loaded successfully via fetch');
       return wasmModule;
-      
     } catch (fetchError) {
       console.error('Fallback method also failed:', fetchError);
       throw new Error(`All loading methods failed. Original error: ${error.message}, Fallback error: ${fetchError.message}`);
@@ -110,24 +99,25 @@ export const loadWasm = async () => {
 
 export const getRandomRGB = async () => {
   const module = await loadWasm();
-  
   try {
-    // WASM 함수 호출
-    const rgb = module._getRandomRGB();
-    
-    // 24비트 RGB 값을 개별 R, G, B 값으로 분리
-    const r = (rgb >> 16) & 0xFF;
-    const g = (rgb >> 8) & 0xFF;
-    const b = rgb & 0xFF;
-    
-    return { r, g, b };
+    // Emscripten bind를 통해 구조체를 직접 JavaScript 객체로 반환
+    const rgbStruct = module.getRandomRGBStruct();
+    console.log('RGB generated using clean struct binding:', rgbStruct);
+    return rgbStruct;
   } catch (error) {
-    console.error('Failed to call WASM function:', error);
+    console.error('Failed to call WASM struct function:', error);
     // 폴백: JavaScript로 랜덤 RGB 생성
-    return {
+    const fallbackRgb = {
       r: Math.floor(Math.random() * 256),
       g: Math.floor(Math.random() * 256),
       b: Math.floor(Math.random() * 256)
     };
+    console.log('RGB generated using JavaScript fallback:', fallbackRgb);
+    return fallbackRgb;
   }
+};
+
+// 간단한 구조체 기반 RGB 생성 (권장 방법)
+export const getRandomRGBStruct = async () => {
+  return await getRandomRGB(); // 동일한 구현
 };
