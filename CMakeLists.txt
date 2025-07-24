@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Emscripten 설정
-if(EMSCRIPTEN)
+if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
     set(CMAKE_EXECUTABLE_SUFFIX ".js")
 
     # 소스 파일
