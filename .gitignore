@@ -1,4 +1,10 @@
-# 빌드 테스트 산출물 무시
+# WASM 빌드 산출물 무시 (CMake + Emscripten 결과물)
+web/public/*.wasm
+web/public/*.js
+web/public/*.html
+build/
+
+# 레거시 빌드 산출물
 public/hello.wasm
 public/hello.js
 public/hello.html
