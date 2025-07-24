@@ -7,7 +7,8 @@ C++과 CMake를 사용하여 WASM 모듈을 생성하고, React와 Vite를 사�
 ```
 wasm_practice/
 ├── src/
-│   └── helper.cpp          # C++ WASM 모듈 소스코드
+│   ├── WASMRenderer.h      # WASMRenderer 클래스 헤더 파일
+│   └── WASMRenderer.cpp    # WASMRenderer 클래스 구현 파일
 ├── web/                    # React Vite 프로젝트
 │   ├── src/
 │   │   ├── App.jsx        # 메인 React 컴포넌트
@@ -23,10 +24,11 @@ wasm_practice/
 
 - ✅ React와 Vite를 사용해서 간단한 웹사이트를 구성
 - ✅ 웹사이트에는 오른쪽에 하나의 버튼과 왼쪽에 캔버스가 위치함
-- ✅ 버튼을 눌르면 helper.cpp의 함수를 WASM을 통해 불러서 임의의 RGB 값을 얻음
+- ✅ 버튼을 눌르면 WASMRenderer 클래스의 함수를 WASM을 통해 불러서 WebGL로 배경색 변경
   - ✅ WASM을 사용하기 위해서 CMake를 사용해서 C++ 프로젝트를 구성
   - ✅ CMake를 모르는 사람을 위해서 shell 스크립트 작성
-- ✅ 얻은 RGB 값을 통해서 캔버스의 배경화면 색상을 변경
+- ✅ WASMRenderer 클래스를 통한 WebGL 렌더링
+- ✅ 클린한 클래스 기반 API 제공
 - ✅ README.md 에 사용법과 내용 갱신
 
 ## 사전 요구사항
@@ -35,7 +37,7 @@ wasm_practice/
    ```bash
    # Emscripten 설치 (macOS)
    brew install emscripten
-   
+
    # 또는 공식 설치 방법
    git clone https://github.com/emscripten-core/emsdk.git
    cd emsdk
@@ -69,8 +71,8 @@ sh ./build-wasm.sh
 이 스크립트는 다음을 수행합니다:
 - `build` 디렉토리 생성
 - Emscripten을 사용해 CMake 설정
-- C++ 코드를 WASM으로 컴파일
-- `web/public/helper.js`와 `web/public/helper.wasm` 파일 생성
+- C++ 코를 WASM으로 컴파일
+- `web/public/WASMRenderer.js`와 `web/public/WASMRenderer.wasm` 파일 생성
 
 ### 2. React 개발 서버 실행
 
@@ -88,18 +90,35 @@ npm run dev
 
 ## 사용법
 
-1. 웹페이지가 로드되면 왼쪽에 회색 캔버스와 오른쪽에 "랜덤 색상 변경" 버튼이 표시됩니다.
-2. 버튼을 클릭하면 C++ WASM 모듈의 `getRandomRGB()` 함수가 호출됩니다.
-3. 함수에서 반환된 임의의 RGB 값으로 캔버스 배경색이 변경됩니다.
-4. 현재 RGB 값이 캔버스 아래에 표시됩니다.
+1. 웹페이지가 로드되면 왼쪽에 WebGL 캔버스와 오른쪽에 "랜덤 배경색 변경" 버튼이 표시됩니다.
+2. 버튼을 클릭하면 C++ WASMRenderer 클래스의 WebGL 함수가 호출됩니다.
+3. WebGL을 통해 캔버스 배경색이 랜덤하게 변경됩니다.
 
 ## 주요 파일 설명
 
-- **`src/helper.cpp`**: 임의의 RGB 값을 생성하는 C++ 함수들
+- **`src/WASMRenderer.h`**: WASMRenderer 클래스 헤더 파일
+- **`src/WASMRenderer.cpp`**: WebGL 렌더링을 위한 WASMRenderer 클래스 구현
 - **`CMakeLists.txt`**: Emscripten으로 WASM 빌드를 위한 CMake 설정
 - **`build-wasm.sh`**: CMake를 모르는 사용자를 위한 간편한 빌드 스크립트
-- **`web/src/wasmLoader.js`**: WASM 모듈을 로드하고 함수를 호출하는 유틸리티
-- **`web/src/App.jsx`**: 캔버스와 버튼이 있는 메인 React 컴포넌트
+- **`web/src/wasmLoader.js`**: WASM 모듈 로드 및 클래스 API 제공
+- **`web/src/App.jsx`**: WebGL 캔버스가 있는 메인 React 컴포넌트
+
+## API 설명
+
+### WASMRenderer 클래스 API
+
+```javascript
+import { createRenderer, initRendererWebGL, setRendererRandomBackgroundColor } from './wasmLoader'
+
+// 렌더러 인스턴스 생성
+await createRenderer()
+
+// WebGL 초기화
+await initRendererWebGL('#canvas-id')
+
+// 랜덤 배경색 설정
+await setRendererRandomBackgroundColor()
+```
 
 ## 문제 해결
 

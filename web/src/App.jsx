@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
-import { initWebGL, setRandomBackgroundColor } from './wasmLoader'
+import {
+  initRendererWebGL,
+  setRendererRandomBackgroundColor
+} from './wasmLoader'
 
 function App() {
   const canvasRef = useRef(null)
@@ -21,9 +24,9 @@ function App() {
       const canvas = canvasRef.current
       if (canvas) {
         canvas.id = 'webgl-canvas'
-        await initWebGL('#webgl-canvas')
+        await initRendererWebGL('#webgl-canvas')
         setIsWebGLInitialized(true)
-        console.log('WebGL 초기화 완료')
+        console.log('WASMRenderer 클래스를 통한 WebGL 초기화 완료')
       }
     } catch (error) {
       console.error('WebGL 초기화 실패:', error)
@@ -38,8 +41,8 @@ function App() {
 
     setIsLoading(true)
     try {
-      // C++에서 WebGL을 통해 배경색 변경
-      await setRandomBackgroundColor()
+      await setRendererRandomBackgroundColor()
+      console.log('WASMRenderer 클래스를 통한 색상 변경')
     } catch (error) {
       console.error('색상 변경 중 오류 발생:', error)
     } finally {
@@ -78,8 +81,8 @@ function App() {
 
           <div className="method-info">
             <small>
-              <strong>사용 방법:</strong> C++ WebGL → WASM → JavaScript<br/>
-              모든 WebGL 로직은 C++에서 처리됩니다
+              <strong>사용 방법:</strong> C++ WASMRenderer → WASM → JavaScript<br/>
+              WASMRenderer 클래스를 통해 모든 WebGL 로직이 처리됩니다
             </small>
           </div>
         </div>

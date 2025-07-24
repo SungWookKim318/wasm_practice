@@ -27,7 +27,7 @@ export const loadWasm = async () => {
   try {
     // 방법 1: script 태그로 동적 로드
     const script = document.createElement('script');
-    script.src = '/helper.js';
+    script.src = '/WASMRenderer.js';
     script.type = 'text/javascript';
     const loadPromise = new Promise((resolve, reject) => {
       script.onload = async () => {
@@ -37,7 +37,7 @@ export const loadWasm = async () => {
             wasmModule = await window.createWasmModule({
               locateFile: (path) => {
                 if (path.endsWith('.wasm')) {
-                  return `/helper.wasm`;
+                  return `/WASMRenderer.wasm`;
                 }
                 return path;
               }
@@ -55,10 +55,10 @@ export const loadWasm = async () => {
       };
       script.onerror = (error) => {
         isLoading = false;
-        reject(new Error('Failed to load helper.js script: ' + error.message));
+        reject(new Error('Failed to load WASMRenderer.js script: ' + error.message));
       };
       // 스크립트가 이미 로드되어 있는지 확인
-      const existingScript = document.querySelector('script[src="/helper.js"]');
+      const existingScript = document.querySelector('script[src="/WASMRenderer.js"]');
       if (existingScript) {
         document.head.removeChild(existingScript);
       }
@@ -72,7 +72,7 @@ export const loadWasm = async () => {
     // 방법 2: fetch로 대체 시도
     try {
       console.log('Trying fallback method with fetch...');
-      const response = await fetch('/helper.js');
+      const response = await fetch('/WASMRenderer.js');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -83,7 +83,7 @@ export const loadWasm = async () => {
       wasmModule = await createWasmModule({
         locateFile: (path) => {
           if (path.endsWith('.wasm')) {
-            return `/helper.wasm`;
+            return `/WASMRenderer.wasm`;
           }
           return path;
         }
@@ -97,71 +97,85 @@ export const loadWasm = async () => {
   }
 };
 
-export const getRandomRGB = async () => {
+// WASMRenderer 클래스 기반 API
+let rendererInstance = null;
+
+export const createRenderer = async () => {
   const module = await loadWasm();
   try {
-    // Emscripten bind를 통해 구조체를 직접 JavaScript 객체로 반환
-    const rgbStruct = module.getRandomRGBStruct();
-    console.log('RGB generated using clean struct binding:', rgbStruct);
-    return rgbStruct;
+    rendererInstance = new module.WASMRenderer();
+    console.log('WASMRenderer instance created');
+    return rendererInstance;
   } catch (error) {
-    console.error('Failed to call WASM struct function:', error);
-    // 폴백: JavaScript로 랜덤 RGB 생성
-    const fallbackRgb = {
-      r: Math.floor(Math.random() * 256),
-      g: Math.floor(Math.random() * 256),
-      b: Math.floor(Math.random() * 256)
-    };
-    console.log('RGB generated using JavaScript fallback:', fallbackRgb);
-    return fallbackRgb;
-  }
-};
-
-// 간단한 구조체 기반 RGB 생성 (권장 방법)
-export const getRandomRGBStruct = async () => {
-  return await getRandomRGB(); // 동일한 구현
-};
-
-// WebGL 관련 함수들
-export const initWebGL = async (canvasId) => {
-  const module = await loadWasm();
-  try {
-    module.initWebGL(canvasId);
-    console.log('WebGL initialized through WASM');
-  } catch (error) {
-    console.error('Failed to initialize WebGL through WASM:', error);
+    console.error('Failed to create WASMRenderer instance:', error);
     throw error;
   }
 };
 
-export const setBackgroundColor = async (r, g, b) => {
-  const module = await loadWasm();
+export const getRenderer = () => {
+  return rendererInstance;
+};
+
+export const initRendererWebGL = async (canvasId) => {
+  if (!rendererInstance) {
+    await createRenderer();
+  }
   try {
-    module.setBackgroundColor(r, g, b);
-    console.log('Background color set through WASM:', { r, g, b });
+    const success = rendererInstance.initWebGL(canvasId);
+    console.log('WASMRenderer WebGL initialized:', success);
+    return success;
   } catch (error) {
-    console.error('Failed to set background color through WASM:', error);
+    console.error('Failed to initialize WASMRenderer WebGL:', error);
     throw error;
   }
 };
 
-export const renderFrame = async () => {
-  const module = await loadWasm();
+export const setRendererBackgroundColor = async (r, g, b) => {
+  if (!rendererInstance) {
+    throw new Error('Renderer not initialized. Call createRenderer() first.');
+  }
   try {
-    module.renderFrame();
+    rendererInstance.setBackgroundColor(r, g, b);
+    console.log('WASMRenderer background color set:', { r, g, b });
   } catch (error) {
-    console.error('Failed to render frame through WASM:', error);
+    console.error('Failed to set WASMRenderer background color:', error);
     throw error;
   }
 };
 
-export const setRandomBackgroundColor = async () => {
-  const module = await loadWasm();
+export const renderRendererFrame = async () => {
+  if (!rendererInstance) {
+    throw new Error('Renderer not initialized. Call createRenderer() first.');
+  }
   try {
-    module.setRandomBackgroundColor();
-    console.log('Random background color set through WASM');
+    rendererInstance.renderFrame();
   } catch (error) {
-    console.error('Failed to set random background color through WASM:', error);
+    console.error('Failed to render WASMRenderer frame:', error);
     throw error;
+  }
+};
+
+export const setRendererRandomBackgroundColor = async () => {
+  if (!rendererInstance) {
+    throw new Error('Renderer not initialized. Call createRenderer() first.');
+  }
+  try {
+    rendererInstance.setRandomBackgroundColor();
+    console.log('WASMRenderer random background color set');
+  } catch (error) {
+    console.error('Failed to set WASMRenderer random background color:', error);
+    throw error;
+  }
+};
+
+export const isRendererInitialized = async () => {
+  if (!rendererInstance) {
+    return false;
+  }
+  try {
+    return rendererInstance.isWebGLInitialized();
+  } catch (error) {
+    console.error('Failed to check WASMRenderer initialization status:', error);
+    return false;
   }
 };

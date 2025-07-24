@@ -1,22 +1,39 @@
-#include "helper.h"
+#include "WASMRenderer.h"
 #include <random>
 #include <emscripten/bind.h>
 #include <emscripten/html5.h>
 #include <GLES3/gl3.h>
 #include <iostream>
-#include <string>
 
 // 전역 랜덤 생성기 (성능 향상을 위해)
 static std::random_device rd;
 static std::mt19937 gen(rd());
 static std::uniform_int_distribution<> dis(0, 255);
 
-// WebGL 컨텍스트 관련 전역 변수
-static EMSCRIPTEN_WEBGL_CONTEXT_HANDLE webglContext = 0;
-static bool isWebGLInitialized = false;
+// 전역 WASMRenderer 인스턴스
+static WASMRenderer *rendererInstance = nullptr;
 
-// WebGL 초기화 함수
-void initWebGL(const std::string &canvasId)
+WASMRenderer::WASMRenderer() : webglContext(0), isInitialized(false)
+{
+  if (rendererInstance == nullptr)
+  {
+    rendererInstance = this;
+  }
+}
+
+WASMRenderer::~WASMRenderer()
+{
+  if (webglContext > 0)
+  {
+    emscripten_webgl_destroy_context(webglContext);
+  }
+  if (rendererInstance == this)
+  {
+    rendererInstance = nullptr;
+  }
+}
+
+bool WASMRenderer::initWebGL(const std::string &canvasId)
 {
   EmscriptenWebGLContextAttributes attrs;
   emscripten_webgl_init_context_attributes(&attrs);
@@ -33,28 +50,28 @@ void initWebGL(const std::string &canvasId)
   if (webglContext <= 0)
   {
     std::cout << "WebGL context creation failed!" << std::endl;
-    return;
+    return false;
   }
 
   EMSCRIPTEN_RESULT result = emscripten_webgl_make_context_current(webglContext);
   if (result != EMSCRIPTEN_RESULT_SUCCESS)
   {
     std::cout << "Failed to make WebGL context current!" << std::endl;
-    return;
+    return false;
   }
 
   // WebGL 초기 설정
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
 
-  isWebGLInitialized = true;
+  isInitialized = true;
   std::cout << "WebGL initialized successfully!" << std::endl;
+  return true;
 }
 
-// 배경색 설정 함수 (0.0-1.0 범위)
-void setBackgroundColor(float r, float g, float b)
+void WASMRenderer::setBackgroundColor(float r, float g, float b)
 {
-  if (!isWebGLInitialized)
+  if (!isInitialized)
   {
     std::cout << "WebGL not initialized!" << std::endl;
     return;
@@ -64,10 +81,9 @@ void setBackgroundColor(float r, float g, float b)
   glClearColor(r, g, b, 1.0f);
 }
 
-// 프레임 렌더링 함수
-void renderFrame()
+void WASMRenderer::renderFrame()
 {
-  if (!isWebGLInitialized)
+  if (!isInitialized)
   {
     std::cout << "WebGL not initialized!" << std::endl;
     return;
@@ -77,10 +93,9 @@ void renderFrame()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-// 랜덤 배경색 설정 함수
-void setRandomBackgroundColor()
+void WASMRenderer::setRandomBackgroundColor()
 {
-  if (!isWebGLInitialized)
+  if (!isInitialized)
   {
     std::cout << "WebGL not initialized!" << std::endl;
     return;
@@ -94,14 +109,22 @@ void setRandomBackgroundColor()
   renderFrame();
 }
 
+bool WASMRenderer::isWebGLInitialized() const
+{
+  return isInitialized;
+}
+
 // Emscripten 바인딩
-EMSCRIPTEN_BINDINGS(helper_module)
+EMSCRIPTEN_BINDINGS(WASMRenderer_module)
 {
   using namespace emscripten;
 
-  // WebGL 관련 함수 바인딩
-  function("initWebGL", &initWebGL);
-  function("setBackgroundColor", &setBackgroundColor);
-  function("renderFrame", &renderFrame);
-  function("setRandomBackgroundColor", &setRandomBackgroundColor);
+  // WASMRenderer 클래스 바인딩
+  class_<WASMRenderer>("WASMRenderer")
+      .constructor<>()
+      .function("initWebGL", &WASMRenderer::initWebGL)
+      .function("setBackgroundColor", &WASMRenderer::setBackgroundColor)
+      .function("renderFrame", &WASMRenderer::renderFrame)
+      .function("setRandomBackgroundColor", &WASMRenderer::setRandomBackgroundColor)
+      .function("isWebGLInitialized", &WASMRenderer::isWebGLInitialized);
 }

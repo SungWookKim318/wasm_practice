@@ -20,7 +20,7 @@ emmake make
 
 echo "WASM build completed!"
 echo "Generated files:"
-echo "- web/public/helper.js"
-echo "- web/public/helper.wasm"
+echo "- web/public/WASMRenderer.js"
+echo "- web/public/WASMRenderer.wasm"
 
 cd ..
