@@ -41,8 +41,8 @@
 # debug information files
 *.dwo
 
-# Created by https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,web,node,cmake,c++
-# Edit at https://www.toptal.com/developers/gitignore?templates=macos,visualstudiocode,web,node,cmake,c++
+# Created by https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,web,react,node,cmake,c++
+# Edit at https://www.toptal.com/developers/gitignore?templates=macos,visualstudiocode,web,react,node,cmake,c++
 
 ### C++ ###
 # Prerequisites
@@ -270,6 +270,19 @@ dist
 # SvelteKit build / generate output
 .svelte-kit
 
+### react ###
+.DS_*
+**/*.backup.*
+**/*.back.*
+
+node_modules
+
+*.sublime*
+
+psd
+thumb
+sketch
+
 ### VisualStudioCode ###
 .vscode/*
 !.vscode/settings.json
@@ -304,4 +317,9 @@ dist
 *.wat
 *.xhtml
 
-# End of https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,web,node,cmake,c++
+# End of https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,web,react,node,cmake,c++
+
+# Custom WASM project specific
+build/
+web/public/helper.js
+web/public/helper.wasm
