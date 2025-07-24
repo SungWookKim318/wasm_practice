@@ -12,9 +12,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
     # 소스 파일
     add_executable(helper src/helper.cpp)
 
-    # Emscripten 링크 플래그
+    # Emscripten 링크 플래그 (WebGL 지원 추가)
     set_target_properties(helper PROPERTIES
-        LINK_FLAGS "-s WASM=1 -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap'] -s ALLOW_MEMORY_GROWTH=1 -s MODULARIZE=1 -s EXPORT_NAME='createWasmModule' --bind"
+        LINK_FLAGS "-s WASM=1 -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap'] -s ALLOW_MEMORY_GROWTH=1 -s MODULARIZE=1 -s EXPORT_NAME='createWasmModule' --bind -s USE_WEBGL2=1 -s FULL_ES3=1"
     )
 
     # 출력 파일을 web/public 디렉토리로 설정

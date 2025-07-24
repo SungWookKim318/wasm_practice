@@ -1,40 +1,45 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
-import { getRandomRGB } from './wasmLoader'
+import { initWebGL, setRandomBackgroundColor } from './wasmLoader'
 
 function App() {
   const canvasRef = useRef(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [currentColor, setCurrentColor] = useState({ r: 128, g: 128, b: 128 })
+  const [isWebGLInitialized, setIsWebGLInitialized] = useState(false)
 
-  // 캔버스 초기화
+  // WebGL 초기화
   useEffect(() => {
     const canvas = canvasRef.current
-    if (canvas) {
-      const ctx = canvas.getContext('2d')
-      updateCanvasColor(ctx, currentColor)
+    if (canvas && !isWebGLInitialized) {
+      initializeWebGL()
     }
-  }, [currentColor])
+  }, [isWebGLInitialized])
 
-  const updateCanvasColor = (ctx, color) => {
-    if (!ctx) return
-
-    ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`
-    ctx.fillRect(0, 0, 400, 300)
+  const initializeWebGL = async () => {
+    try {
+      // Canvas에 ID 설정
+      const canvas = canvasRef.current
+      if (canvas) {
+        canvas.id = 'webgl-canvas'
+        await initWebGL('#webgl-canvas')
+        setIsWebGLInitialized(true)
+        console.log('WebGL 초기화 완료')
+      }
+    } catch (error) {
+      console.error('WebGL 초기화 실패:', error)
+    }
   }
 
   const handleChangeColor = async () => {
+    if (!isWebGLInitialized) {
+      console.log('WebGL이 아직 초기화되지 않았습니다.')
+      return
+    }
+
     setIsLoading(true)
     try {
-      // 간단하고 깔끔한 구조체 기반 방법
-      const newColor = await getRandomRGB();
-      setCurrentColor(newColor)
-
-      const canvas = canvasRef.current
-      if (canvas) {
-        const ctx = canvas.getContext('2d')
-        updateCanvasColor(ctx, newColor)
-      }
+      // C++에서 WebGL을 통해 배경색 변경
+      await setRandomBackgroundColor()
     } catch (error) {
       console.error('색상 변경 중 오류 발생:', error)
     } finally {
@@ -44,7 +49,7 @@ function App() {
 
   return (
     <div className="app">
-      <h1>WASM + React Color Changer</h1>
+      <h1>WASM + WebGL Color Changer</h1>
       <div className="content">
         <div className="canvas-container">
           <canvas
@@ -54,27 +59,27 @@ function App() {
             className="color-canvas"
           />
           <p className="color-info">
-            현재 색상: RGB({currentColor.r}, {currentColor.g}, {currentColor.b})
+            {isWebGLInitialized ? 'WebGL 초기화 완료' : 'WebGL 초기화 중...'}
           </p>
         </div>
         <div className="button-container">
           <button
             onClick={handleChangeColor}
-            disabled={isLoading}
+            disabled={isLoading || !isWebGLInitialized}
             className="change-color-btn"
           >
-            {isLoading ? '색상 변경 중...' : '랜덤 색상 변경'}
+            {isLoading ? '색상 변경 중...' : '랜덤 배경색 변경'}
           </button>
 
           <p className="instruction">
-            버튼을 클릭하여 WASM 구조체를 통해<br/>
-            깔끔하게 랜덤 RGB 색상을 생성합니다
+            버튼을 클릭하여 C++ WebGL 코드를 통해<br/>
+            배경색을 변경합니다
           </p>
 
           <div className="method-info">
             <small>
-              <strong>사용 방법:</strong> C++ 구조체 → JavaScript 객체<br/>
-              비트 패킹 없이 직접적인 데이터 전달
+              <strong>사용 방법:</strong> C++ WebGL → WASM → JavaScript<br/>
+              모든 WebGL 로직은 C++에서 처리됩니다
             </small>
           </div>
         </div>

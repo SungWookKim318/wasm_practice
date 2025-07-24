@@ -121,3 +121,47 @@ export const getRandomRGB = async () => {
 export const getRandomRGBStruct = async () => {
   return await getRandomRGB(); // 동일한 구현
 };
+
+// WebGL 관련 함수들
+export const initWebGL = async (canvasId) => {
+  const module = await loadWasm();
+  try {
+    module.initWebGL(canvasId);
+    console.log('WebGL initialized through WASM');
+  } catch (error) {
+    console.error('Failed to initialize WebGL through WASM:', error);
+    throw error;
+  }
+};
+
+export const setBackgroundColor = async (r, g, b) => {
+  const module = await loadWasm();
+  try {
+    module.setBackgroundColor(r, g, b);
+    console.log('Background color set through WASM:', { r, g, b });
+  } catch (error) {
+    console.error('Failed to set background color through WASM:', error);
+    throw error;
+  }
+};
+
+export const renderFrame = async () => {
+  const module = await loadWasm();
+  try {
+    module.renderFrame();
+  } catch (error) {
+    console.error('Failed to render frame through WASM:', error);
+    throw error;
+  }
+};
+
+export const setRandomBackgroundColor = async () => {
+  const module = await loadWasm();
+  try {
+    module.setRandomBackgroundColor();
+    console.log('Random background color set through WASM');
+  } catch (error) {
+    console.error('Failed to set random background color through WASM:', error);
+    throw error;
+  }
+};
