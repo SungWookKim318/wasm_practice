@@ -1,9 +1,19 @@
+# 빌드 테스트 산출물 무시
+public/hello.wasm
+public/hello.js
+public/hello.html
 
 # Prerequisites
 *.d
 
 # Compiled Object files
-*.slo
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 *.lo
 *.o
 *.obj
@@ -301,23 +311,6 @@ sketch
 # Ignore all local history of files
 .history
 .ionide
-
-### Web ###
-*.asp
-*.cer
-*.csr
-*.css
-*.htm
-*.html
-*.js
-*.jsp
-*.php
-*.rss
-*.wasm
-*.wat
-*.xhtml
-
-# End of https://www.toptal.com/developers/gitignore/api/macos,visualstudiocode,web,react,node,cmake,c++
 
 # Custom WASM project specific
 build/

@@ -63,7 +63,7 @@ wasm_practice/
 
 ```bash
 # 프로젝트 루트 디렉토리에서
-./build-wasm.sh
+sh ./build-wasm.sh
 ```
 
 이 스크립트는 다음을 수행합니다:
