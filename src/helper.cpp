@@ -15,16 +15,6 @@ static std::uniform_int_distribution<> dis(0, 255);
 static EMSCRIPTEN_WEBGL_CONTEXT_HANDLE webglContext = 0;
 static bool isWebGLInitialized = false;
 
-// RGB 구조체를 반환하는 간단한 함수
-RGBColor getRandomRGBStruct()
-{
-  RGBColor color;
-  color.r = dis(gen);
-  color.g = dis(gen);
-  color.b = dis(gen);
-  return color;
-}
-
 // WebGL 초기화 함수
 void initWebGL(const std::string &canvasId)
 {
@@ -108,14 +98,6 @@ void setRandomBackgroundColor()
 EMSCRIPTEN_BINDINGS(helper_module)
 {
   using namespace emscripten;
-  // RGBColor 구조체를 JavaScript에 바인딩
-  value_object<RGBColor>("RGBColor")
-      .field("r", &RGBColor::r)
-      .field("g", &RGBColor::g)
-      .field("b", &RGBColor::b);
-
-  // 함수 바인딩
-  function("getRandomRGBStruct", &getRandomRGBStruct);
 
   // WebGL 관련 함수 바인딩
   function("initWebGL", &initWebGL);
